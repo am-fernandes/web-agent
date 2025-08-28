@@ -13,7 +13,7 @@ async def run_mcp_agent():
         timeout_seconds=120
     )
     browser_tool = MCPTools(
-        command="npx -y @playwright/mcp@latest --no-sandbox --save-trace --viewport-size=1920,1080 --output-dir=mcp_results --headless --isolated", 
+        command="node /home/matheus/Projects/playwright-mcp/cli.js --no-sandbox --save-trace --save-video --viewport-size=1920,1080 --output-dir=mcp_results --headless --isolated", 
         timeout_seconds=120
     )
     
@@ -22,7 +22,7 @@ async def run_mcp_agent():
         await browser_tool.connect()
 
         agent = Agent(
-            model=OpenAIChat(id="gpt-4o"),
+            model=OpenAIChat(id="gpt-5"),
             instructions=dedent("""\
                 You are a browser automation tool. Your task is to assist the user 
                 in automating web tasks using the Playwright library.

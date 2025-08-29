@@ -1,15 +1,25 @@
 import { useState, useRef, useEffect } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import ReactMarkdown from 'react-markdown'
-import './App.css'
+import { Send, Plus, Settings, Bot, User, ChevronDown, ChevronRight } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
+import { Separator } from '@/components/ui/separator'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 
 function App() {
   const [messages, setMessages] = useState([])
   const [inputValue, setInputValue] = useState('')
   const [loading, setLoading] = useState(false)
+  const [isTyping, setIsTyping] = useState(false)
   const [sessionId, setSessionId] = useState(() => uuidv4())
   const [userId] = useState('user-' + Math.random().toString(36).substr(2, 9))
   const messagesEndRef = useRef(null)
+  const textareaRef = useRef(null)
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -19,10 +29,19 @@ function App() {
     scrollToBottom()
   }, [messages])
 
+  const handleInputChange = (e) => {
+    setInputValue(e.target.value)
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto'
+      textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 120) + 'px'
+    }
+  }
+
   const handleNewChat = () => {
     setMessages([])
     setSessionId(uuidv4())
   }
+
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -38,6 +57,7 @@ function App() {
     setMessages(prev => [...prev, userMessage])
     setInputValue('')
     setLoading(true)
+    setIsTyping(true)
 
     try {
       const response = await fetch(`http://localhost:8000/agent/${sessionId}`, {
@@ -64,6 +84,7 @@ function App() {
       }
 
       setMessages(prev => [...prev, agentMessage])
+      setIsTyping(false)
     } catch (error) {
       console.error('Error:', error)
       const errorMessage = {
@@ -74,131 +95,243 @@ function App() {
         error: true
       }
       setMessages(prev => [...prev, errorMessage])
+      setIsTyping(false)
     } finally {
       setLoading(false)
+      setIsTyping(false)
     }
   }
 
   return (
-    <div className="app">
-      <div className="chat-container">
-        <header className="chat-header">
-          <div className="header-content">
-            <h1>Web Agent</h1>
-            <p>Automação web inteligente</p>
+    <div className="h-screen w-screen bg-white dark:bg-gray-950 flex flex-col overflow-hidden">
+        {/* Header */}
+        <header className="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950">
+          <div className="flex items-center justify-between px-6 py-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-gray-900 dark:bg-white rounded-md flex items-center justify-center">
+                <Bot className="h-4 w-4 text-white dark:text-gray-900" />
+              </div>
+              <h1 className="text-lg font-medium text-gray-900 dark:text-white">Web Agent</h1>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleNewChat}
+              className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Novo Chat
+            </Button>
           </div>
-          <button className="new-chat-btn" onClick={handleNewChat}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M12 5v14M5 12h14"/>
-            </svg>
-            Novo Chat
-          </button>
         </header>
 
-        <div className="messages-container">
-          {messages.length === 0 && (
-            <div className="welcome-message">
-              <div className="welcome-content">
-                <h2>Olá! 👋</h2>
-                <p>Sou seu agente de automação web. Posso ajudar você a navegar, extrair informações e automatizar tarefas em sites.</p>
-                <div className="example-prompts">
-                  <h3>Exemplos do que posso fazer:</h3>
-                  <div className="examples">
-                    <div className="example" onClick={() => setInputValue('Acesse o site exemplo.com e me diga qual o título da página')}>Acesse o site exemplo.com e me diga qual o título da página</div>
-                    <div className="example" onClick={() => setInputValue('Navegue até google.com e pesquise por "automação web"')}>Navegue até google.com e pesquise por "automação web"</div>
-                    <div className="example" onClick={() => setInputValue('Vá para github.com e me mostre os repositórios em tendência')}>Vá para github.com e me mostre os repositórios em tendência</div>
-                    <div className="example" onClick={() => setInputValue('Acesse o site da Wikipedia sobre automação e me forneça um resumo estruturado com principais tópicos')}>Acesse a Wikipedia sobre automação e crie um resumo estruturado</div>
+        {/* Main Content */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <div className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth">
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 space-y-4">
+              {/* Empty state message */}
+              {messages.length === 0 && (
+                <div className="flex justify-center items-center h-full min-h-[50vh]">
+                  <div className="text-center max-w-md px-4">
+                    <div className="w-16 h-16 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                      <Bot className="h-8 w-8 text-gray-400 dark:text-gray-500" />
+                    </div>
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                      Como posso ajudar?
+                    </h3>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
+                      Digite uma mensagem para começar uma conversa. Posso navegar em sites, extrair informações e automatizar tarefas web.
+                    </p>
                   </div>
                 </div>
-              </div>
+              )}
+
+              {/* Messages */}
+              {messages.map(message => (
+                <MessageBubble key={message.id} message={message} />
+              ))}
+
+              {/* Loading */}
+              {isTyping && <TypingIndicator />}
+              
+              <div ref={messagesEndRef} />
             </div>
+          </div>
+
+          {/* Input Form */}
+          <div className="border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 px-4 sm:px-6 py-4">
+            <form onSubmit={handleSubmit} className="max-w-4xl mx-auto">
+              <div className="relative flex items-end space-x-3">
+                <div className="flex-1 relative">
+                  <Textarea
+                    ref={textareaRef}
+                    value={inputValue}
+                    onChange={handleInputChange}
+                    placeholder={loading ? "Aguarde a resposta..." : "Digite sua mensagem..."}
+                    disabled={loading}
+                    rows={1}
+                    className="min-h-[48px] max-h-32 resize-none pr-12 border-gray-300 dark:border-gray-600 focus:border-gray-900 dark:focus:border-gray-300 focus:ring-1 focus:ring-gray-900 dark:focus:ring-gray-300 transition-all duration-200"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault()
+                        handleSubmit(e)
+                      }
+                    }}
+                  />
+                  {loading && (
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        setLoading(false)
+                        setIsTyping(false)
+                      }}
+                      size="sm"
+                      variant="ghost"
+                      className="absolute right-2 bottom-2 h-8 w-8 p-0 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                    >
+                      <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+                    </Button>
+                  )}
+                  {!loading && (
+                    <Button
+                      type="submit"
+                      disabled={loading || !inputValue.trim()}
+                      size="sm"
+                      className="absolute right-2 bottom-2 h-8 w-8 p-0 bg-gray-900 hover:bg-gray-700 text-white dark:bg-gray-100 dark:hover:bg-white dark:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    >
+                      <Send className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+    </div>
+  )
+}
+
+
+function MessageBubble({ message }) {
+  const isUser = message.type === 'user'
+  
+  return (
+    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4 px-1`}>
+      <div className={`flex space-x-4 max-w-3xl ${isUser ? 'flex-row-reverse space-x-reverse' : ''}`}>
+        {/* Avatar */}
+        <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${isUser ? 'bg-gray-900 dark:bg-white' : 'bg-gray-100 dark:bg-gray-800'}`}>
+          {isUser ? (
+            <User className="h-4 w-4 text-white dark:text-gray-900" />
+          ) : (
+            <Bot className="h-4 w-4 text-gray-600 dark:text-gray-300" />
           )}
-
-          {messages.map(message => (
-            <MessageBubble key={message.id} message={message} />
-          ))}
-
-          {loading && <LoadingBubble />}
-          <div ref={messagesEndRef} />
         </div>
 
-        <form onSubmit={handleSubmit} className="input-form">
-          <div className="input-container">
-            <textarea
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              placeholder="Digite sua mensagem..."
-              rows="1"
-              disabled={loading}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault()
-                  handleSubmit(e)
-                }
-              }}
-            />
-            <button type="submit" disabled={loading || !inputValue.trim()}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
-              </svg>
-            </button>
+        {/* Message Content */}
+        <div className="space-y-1 min-w-0">
+          <div className={`rounded-2xl px-4 py-3 overflow-hidden max-w-full ${isUser ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900' : 'bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700'}`}>
+            <div className={`prose prose-sm max-w-none break-words ${isUser ? 'prose-invert dark:prose' : 'dark:prose-invert'}`}>
+              <ReactMarkdown>{message.content}</ReactMarkdown>
+            </div>
+            
+            {/* Metrics for agent messages */}
+            {!isUser && message.metrics && (
+              <div className="mt-3 pt-3 border-t border-gray-200/50 dark:border-gray-700/50">
+                <div className="flex flex-wrap gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+                  <span className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-md font-mono">
+                    {message.metrics.input_tokens}→{message.metrics.output_tokens}
+                  </span>
+                  <span className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-md">
+                    {message.metrics.time?.toFixed(1)}s
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Tools Section */}
+            {!isUser && message.tools && message.tools.length > 0 && (
+              <ToolsSection tools={message.tools} />
+            )}
           </div>
-        </form>
+          
+          {/* Timestamp */}
+          <p className={`text-xs text-gray-400 px-3 ${isUser ? 'text-right' : 'text-left'}`}>
+            {message.timestamp}
+          </p>
+        </div>
       </div>
     </div>
   )
 }
 
-function MessageBubble({ message }) {
-  const [showTools, setShowTools] = useState(false)
-
-  const formatMetrics = (metrics) => {
-    if (!metrics) return null
-    return `${metrics.input_tokens}/${metrics.output_tokens} tokens • ${metrics.time?.toFixed(1)}s`
-  }
+function ToolsSection({ tools }) {
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   return (
-    <div className={`message-bubble ${message.type}`}>
-      <div className="message-content">
-        <div className="message-text">
-          {message.type === 'agent' ? (
-            <ReactMarkdown>{message.content}</ReactMarkdown>
-          ) : (
-            message.content
-          )}
-        </div>
-        
-        {message.type === 'agent' && message.metrics && (
-          <div className="message-metrics">
-            {formatMetrics(message.metrics)}
+    <>
+      <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <button 
+          onClick={() => setIsModalOpen(true)}
+          className="w-full flex items-center justify-between p-2 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg"
+        >
+          <div className="flex items-center space-x-2">
+            <Settings className="h-4 w-4" />
+            <span>Ver ferramentas utilizadas ({tools.length})</span>
           </div>
-        )}
-        
-        {message.type === 'agent' && message.tools && message.tools.length > 0 && (
-          <div className="tools-section">
-            <button 
-              className="tools-toggle"
-              onClick={() => setShowTools(!showTools)}
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
-              </svg>
-              Ver detalhes das ferramentas ({message.tools.length})
-            </button>
-            
-            {showTools && (
-              <div className="tools-details">
-                {message.tools.map((tool, index) => (
-                  <ToolDetail key={index} tool={tool} />
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+          <ChevronRight className="h-4 w-4" />
+        </button>
       </div>
       
-      <div className="message-timestamp">
-        {message.timestamp}
+      {isModalOpen && (
+        <ToolsModal tools={tools} onClose={() => setIsModalOpen(false)} />
+      )}
+    </>
+  )
+}
+
+function ToolsModal({ tools, onClose }) {
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') {
+        onClose()
+      }
+    }
+    document.addEventListener('keydown', handleEscape)
+    document.body.style.overflow = 'hidden'
+    
+    return () => {
+      document.removeEventListener('keydown', handleEscape)
+      document.body.style.overflow = 'unset'
+    }
+  }, [onClose])
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 w-full max-w-[80%] max-h-[80%] flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center space-x-2">
+            <Settings className="h-5 w-5" />
+            <span>Ferramentas Utilizadas ({tools.length})</span>
+          </h2>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-6">
+          <div className="space-y-4">
+            {tools.map((tool, index) => (
+              <ToolDetail key={index} tool={tool} />
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   )
@@ -206,65 +339,72 @@ function MessageBubble({ message }) {
 
 function ToolDetail({ tool }) {
   const [expanded, setExpanded] = useState(false)
-
+  
   return (
-    <div className="tool-detail">
-      <div className="tool-header" onClick={() => setExpanded(!expanded)}>
-        <div className="tool-info">
-          <span className="tool-name">{tool.tool_name}</span>
-          <span className={`tool-status ${tool.tool_call_error ? 'error' : 'success'}`}>
-            {tool.tool_call_error ? 'Erro' : 'Sucesso'}
-          </span>
-        </div>
-        <svg 
-          width="16" 
-          height="16" 
-          viewBox="0 0 24 24" 
-          fill="none" 
-          stroke="currentColor" 
-          strokeWidth="2"
-          className={`expand-icon ${expanded ? 'expanded' : ''}`}
-        >
-          <path d="M6 9l6 6 6-6"/>
-        </svg>
-      </div>
-      
-      {expanded && (
-        <div className="tool-content">
-          <div className="tool-section">
-            <h5>Argumentos:</h5>
-            <pre>{JSON.stringify(tool.tool_args, null, 2)}</pre>
+    <div className="border border-gray-200 dark:border-gray-700 rounded-lg">
+      <button 
+        className="w-full p-4 text-left text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+        onClick={() => setExpanded(!expanded)}
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <code className="text-sm font-mono bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-md">
+              {tool.tool_name}
+            </code>
+            <span className={`text-sm px-3 py-1 rounded-md font-medium ${tool.tool_call_error ? 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300' : 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300'}`}>
+              {tool.tool_call_error ? 'Erro' : 'Sucesso'}
+            </span>
           </div>
-          
-          {tool.result && (
-            <div className="tool-section">
-              <h5>Resultado:</h5>
-              <div className="tool-result-markdown">
-                <ReactMarkdown>{tool.result}</ReactMarkdown>
-              </div>
-            </div>
-          )}
-          
-          {tool.metrics && (
-            <div className="tool-section">
-              <h5>Métricas:</h5>
-              <pre>{tool.metrics}</pre>
-            </div>
-          )}
+          {expanded ? <ChevronDown className="h-5 w-5 text-gray-400" /> : <ChevronRight className="h-5 w-5 text-gray-400" />}
         </div>
-      )}
+      </button>
+      
+      <Collapsible open={expanded}>
+        <CollapsibleContent>
+          <div className="px-4 pb-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+            <div className="space-y-4 pt-4">
+              <div>
+                <h6 className="font-semibold mb-2 text-gray-800 dark:text-gray-200">Argumentos:</h6>
+                <pre className="text-sm bg-white dark:bg-gray-900 p-3 rounded-lg border text-gray-600 dark:text-gray-400 whitespace-pre-wrap break-all max-w-full">
+                  <code>{JSON.stringify(tool.tool_args, null, 2)}</code>
+                </pre>
+              </div>
+              
+              {tool.result && (
+                <div>
+                  <h6 className="font-semibold mb-2 text-gray-800 dark:text-gray-200">Resultado:</h6>
+                  <div className="bg-white dark:bg-gray-900 p-3 rounded-lg border overflow-x-auto custom-scrollbar">
+                    <div className="prose prose-sm max-w-none dark:prose-invert text-gray-600 dark:text-gray-400">
+                      <ReactMarkdown>{tool.result}</ReactMarkdown>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
     </div>
   )
 }
 
-function LoadingBubble() {
+function TypingIndicator() {
   return (
-    <div className="message-bubble agent loading">
-      <div className="message-content">
-        <div className="loading-dots">
-          <span></span>
-          <span></span>
-          <span></span>
+    <div className="flex justify-start mb-4 px-1">
+      <div className="flex space-x-4 max-w-3xl">
+        <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center shrink-0">
+          <Bot className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+        </div>
+        <div className="space-y-1 min-w-0">
+          <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl px-4 py-3">
+            <div className="flex items-center space-x-2">
+              <div className="flex space-x-1">
+                <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
+                <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{animationDelay: '150ms'}}></div>
+                <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{animationDelay: '300ms'}}></div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

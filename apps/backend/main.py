@@ -50,7 +50,7 @@ async def run_agent(session_id: str, agent_call: AgentRequest):
         
         try:
             agent = Agent(
-                model=OpenAIChat(id="gpt-4.1-mini"),
+                model=OpenAIChat(id="gpt-5-mini"),
                 instructions=dedent("""\
                     You are a browser automation tool. Your task is to assist the user 
                     in automating web tasks using the Playwright library.

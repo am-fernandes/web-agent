@@ -103,21 +103,21 @@ function App() {
   }
 
   return (
-    <div className="h-screen w-screen bg-white dark:bg-gray-950 flex flex-col overflow-hidden">
+    <div className="h-screen w-screen bg-white flex flex-col overflow-hidden">
         {/* Header */}
-        <header className="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950">
+        <header className="border-b border-gray-200 bg-white">
           <div className="flex items-center justify-between px-6 py-4">
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-gray-900 dark:bg-white rounded-md flex items-center justify-center">
-                <Bot className="h-4 w-4 text-white dark:text-gray-900" />
+              <div className="w-8 h-8 bg-gray-900 rounded-md flex items-center justify-center">
+                <Bot className="h-4 w-4 text-white" />
               </div>
-              <h1 className="text-lg font-medium text-gray-900 dark:text-white">Web Agent</h1>
+              <h1 className="text-lg font-medium text-gray-900">Web Agent</h1>
             </div>
             <Button
               variant="outline"
               size="sm"
               onClick={handleNewChat}
-              className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
+              className="border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-gray-900"
             >
               <Plus className="h-4 w-4 mr-2" />
               Novo Chat
@@ -133,13 +133,13 @@ function App() {
               {messages.length === 0 && (
                 <div className="flex justify-center items-center h-full min-h-[50vh]">
                   <div className="text-center max-w-md px-4">
-                    <div className="w-16 h-16 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                      <Bot className="h-8 w-8 text-gray-400 dark:text-gray-500" />
+                    <div className="w-16 h-16 bg-gray-50 border border-gray-200 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                      <Bot className="h-8 w-8 text-gray-400" />
                     </div>
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">
                       Como posso ajudar?
                     </h3>
-                    <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
+                    <p className="text-gray-500 text-sm leading-relaxed">
                       Digite uma mensagem para começar uma conversa. Posso navegar em sites, extrair informações e automatizar tarefas web.
                     </p>
                   </div>
@@ -159,7 +159,7 @@ function App() {
           </div>
 
           {/* Input Form */}
-          <div className="border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 px-4 sm:px-6 py-4">
+          <div className="border-t border-gray-200 bg-white px-4 sm:px-6 py-4">
             <form onSubmit={handleSubmit} className="max-w-4xl mx-auto">
               <div className="relative flex items-end space-x-3">
                 <div className="flex-1 relative">
@@ -170,7 +170,7 @@ function App() {
                     placeholder={loading ? "Aguarde a resposta..." : "Digite sua mensagem..."}
                     disabled={loading}
                     rows={1}
-                    className="min-h-[48px] max-h-32 resize-none pr-12 border-gray-300 dark:border-gray-600 focus:border-gray-900 dark:focus:border-gray-300 focus:ring-1 focus:ring-gray-900 dark:focus:ring-gray-300 transition-all duration-200"
+                    className="min-h-[48px] max-h-32 resize-none pr-12 border-gray-300 focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-all duration-200"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault()
@@ -187,7 +187,7 @@ function App() {
                       }}
                       size="sm"
                       variant="ghost"
-                      className="absolute right-2 bottom-2 h-8 w-8 p-0 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                      className="absolute right-2 bottom-2 h-8 w-8 p-0 text-gray-500 hover:text-gray-700"
                     >
                       <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
                     </Button>
@@ -197,7 +197,7 @@ function App() {
                       type="submit"
                       disabled={loading || !inputValue.trim()}
                       size="sm"
-                      className="absolute right-2 bottom-2 h-8 w-8 p-0 bg-gray-900 hover:bg-gray-700 text-white dark:bg-gray-100 dark:hover:bg-white dark:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                      className="absolute right-2 bottom-2 h-8 w-8 p-0 bg-gray-900 hover:bg-gray-700 text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                     >
                       <Send className="h-4 w-4" />
                     </Button>
@@ -219,29 +219,29 @@ function MessageBubble({ message }) {
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4 px-1`}>
       <div className={`flex space-x-4 max-w-3xl ${isUser ? 'flex-row-reverse space-x-reverse' : ''}`}>
         {/* Avatar */}
-        <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${isUser ? 'bg-gray-900 dark:bg-white' : 'bg-gray-100 dark:bg-gray-800'}`}>
+        <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${isUser ? 'bg-gray-900' : 'bg-gray-100'}`}>
           {isUser ? (
-            <User className="h-4 w-4 text-white dark:text-gray-900" />
+            <User className="h-4 w-4 text-white" />
           ) : (
-            <Bot className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+            <Bot className="h-4 w-4 text-gray-600" />
           )}
         </div>
 
         {/* Message Content */}
         <div className="space-y-1 min-w-0">
-          <div className={`rounded-2xl px-4 py-3 overflow-hidden max-w-full ${isUser ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900' : 'bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700'}`}>
-            <div className={`prose prose-sm max-w-none break-words ${isUser ? 'prose-invert dark:prose' : 'dark:prose-invert'}`}>
+          <div className={`rounded-2xl px-4 py-3 overflow-hidden max-w-full ${isUser ? 'bg-gray-900 text-white' : 'bg-gray-50 border border-gray-200'}`}>
+            <div className={`prose prose-sm max-w-none break-words ${isUser ? 'prose-invert' : ''}`}>
               <ReactMarkdown>{message.content}</ReactMarkdown>
             </div>
             
             {/* Metrics for agent messages */}
             {!isUser && message.metrics && (
-              <div className="mt-3 pt-3 border-t border-gray-200/50 dark:border-gray-700/50">
-                <div className="flex flex-wrap gap-1.5 text-xs text-gray-500 dark:text-gray-400">
-                  <span className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-md font-mono">
+              <div className="mt-3 pt-3 border-t border-gray-200/50">
+                <div className="flex flex-wrap gap-1.5 text-xs text-gray-500">
+                  <span className="bg-gray-100 px-2 py-1 rounded-md font-mono">
                     {message.metrics.input_tokens}→{message.metrics.output_tokens}
                   </span>
-                  <span className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-md">
+                  <span className="bg-gray-100 px-2 py-1 rounded-md">
                     {message.metrics.time?.toFixed(1)}s
                   </span>
                 </div>
@@ -269,10 +269,10 @@ function ToolsSection({ tools }) {
 
   return (
     <>
-      <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+      <div className="mt-4 pt-4 border-t border-gray-200">
         <button 
           onClick={() => setIsModalOpen(true)}
-          className="w-full flex items-center justify-between p-2 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg"
+          className="w-full flex items-center justify-between p-2 text-sm text-gray-600 hover:text-gray-900 transition-colors hover:bg-gray-50 rounded-lg"
         >
           <div className="flex items-center space-x-2">
             <Settings className="h-4 w-4" />
@@ -307,16 +307,16 @@ function ToolsModal({ tools, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 w-full max-w-[80%] max-h-[80%] flex flex-col">
+      <div className="bg-white rounded-xl border border-gray-200 w-full max-w-[80%] max-h-[80%] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center space-x-2">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <h2 className="text-xl font-semibold text-gray-900 flex items-center space-x-2">
             <Settings className="h-5 w-5" />
             <span>Ferramentas Utilizadas ({tools.length})</span>
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
+            className="text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-gray-100 rounded-lg"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -341,17 +341,17 @@ function ToolDetail({ tool }) {
   const [expanded, setExpanded] = useState(false)
   
   return (
-    <div className="border border-gray-200 dark:border-gray-700 rounded-lg">
+    <div className="border border-gray-200 rounded-lg">
       <button 
-        className="w-full p-4 text-left text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+        className="w-full p-4 text-left text-gray-700 hover:bg-gray-50 transition-colors"
         onClick={() => setExpanded(!expanded)}
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <code className="text-sm font-mono bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-md">
+            <code className="text-sm font-mono bg-gray-100 px-3 py-1 rounded-md">
               {tool.tool_name}
             </code>
-            <span className={`text-sm px-3 py-1 rounded-md font-medium ${tool.tool_call_error ? 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300' : 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300'}`}>
+            <span className={`text-sm px-3 py-1 rounded-md font-medium ${tool.tool_call_error ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
               {tool.tool_call_error ? 'Erro' : 'Sucesso'}
             </span>
           </div>
@@ -361,20 +361,20 @@ function ToolDetail({ tool }) {
       
       <Collapsible open={expanded}>
         <CollapsibleContent>
-          <div className="px-4 pb-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+          <div className="px-4 pb-4 border-t border-gray-200 bg-gray-50">
             <div className="space-y-4 pt-4">
               <div>
-                <h6 className="font-semibold mb-2 text-gray-800 dark:text-gray-200">Argumentos:</h6>
-                <pre className="text-sm bg-white dark:bg-gray-900 p-3 rounded-lg border text-gray-600 dark:text-gray-400 whitespace-pre-wrap break-all max-w-full">
+                <h6 className="font-semibold mb-2 text-gray-800">Argumentos:</h6>
+                <pre className="text-sm bg-white p-3 rounded-lg border text-gray-600 whitespace-pre-wrap break-all max-w-full">
                   <code>{JSON.stringify(tool.tool_args, null, 2)}</code>
                 </pre>
               </div>
               
               {tool.result && (
                 <div>
-                  <h6 className="font-semibold mb-2 text-gray-800 dark:text-gray-200">Resultado:</h6>
-                  <div className="bg-white dark:bg-gray-900 p-3 rounded-lg border overflow-x-auto custom-scrollbar">
-                    <div className="prose prose-sm max-w-none dark:prose-invert text-gray-600 dark:text-gray-400">
+                  <h6 className="font-semibold mb-2 text-gray-800">Resultado:</h6>
+                  <div className="bg-white p-3 rounded-lg border overflow-x-auto custom-scrollbar">
+                    <div className="prose prose-sm max-w-none text-gray-600">
                       <ReactMarkdown>{tool.result}</ReactMarkdown>
                     </div>
                   </div>
@@ -392,16 +392,16 @@ function TypingIndicator() {
   return (
     <div className="flex justify-start mb-4 px-1">
       <div className="flex space-x-4 max-w-3xl">
-        <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center shrink-0">
-          <Bot className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+        <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
+          <Bot className="h-4 w-4 text-gray-600" />
         </div>
         <div className="space-y-1 min-w-0">
-          <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl px-4 py-3">
+          <div className="bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3">
             <div className="flex items-center space-x-2">
               <div className="flex space-x-1">
-                <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
-                <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{animationDelay: '150ms'}}></div>
-                <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{animationDelay: '300ms'}}></div>
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '150ms'}}></div>
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '300ms'}}></div>
               </div>
             </div>
           </div>

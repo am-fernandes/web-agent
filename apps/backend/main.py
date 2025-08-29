@@ -5,12 +5,21 @@ from agno.tools.mcp import MCPTools
 from textwrap import dedent
 from dotenv import load_dotenv
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 import json
 
 load_dotenv()
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 storage = SqliteStorage(table_name="agent_sessions", db_file="tmp/data.db")
 

@@ -255,7 +255,7 @@ function MessageBubble({ message }) {
                 : 'bg-gray-50 border border-gray-200'
             }`}
           >
-            <MarkdownRenderer 
+            <MarkdownRenderer
               className={`prose prose-sm max-w-none break-words ${
                 isUser ? 'prose-invert' : ''
               }`}
@@ -276,7 +276,7 @@ function MessageBubble({ message }) {
                     Output: {message.metrics.output_tokens}
                   </span>
 
-                  <span className="bg-gray-100 px-2 py-1 rounded-md">
+                  <span className="bg-gray-100 px-2 py-1 rounded-md font-mono">
                     Tempo: {message.metrics.time?.toFixed(1)}s
                   </span>
                 </div>
@@ -289,8 +289,9 @@ function MessageBubble({ message }) {
                 <button
                   onClick={() => {
                     navigator.clipboard.writeText(message.content);
-                    toast("Resposta copiada!", {
-                      description: "A resposta foi copiada para a área de transferência.",
+                    toast('Resposta copiada!', {
+                      description:
+                        'A resposta foi copiada para a área de transferência.',
                     });
                   }}
                   className="flex items-center space-x-2 text-sm text-gray-600 hover:text-gray-900 transition-colors hover:bg-gray-50 px-2 py-1 rounded-lg"
@@ -455,7 +456,7 @@ function ToolDetail({ tool }) {
                     Resultado:
                   </h6>
                   <div className="bg-white p-3 rounded-lg border overflow-x-auto custom-scrollbar">
-                    <MarkdownRenderer 
+                    <MarkdownRenderer
                       className="prose prose-sm max-w-none text-gray-600"
                       size="small"
                     >

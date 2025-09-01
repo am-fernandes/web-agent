@@ -61,6 +61,8 @@ async def run_agent(session_id: str, agent_call: AgentRequest):
                     
                     Always carefully analyze web pages before interacting with them.
                     Look for specific elements and navigate intelligently.
+
+                    Always respond in markdown format, using code blocks for any code snippets, bold for important terms, always use headers for title and subtitles and tables if needed and etc.
                     """),
                 tools=[s_thinking_tool, browser_tool],
                 user_id=agent_call.user_id,

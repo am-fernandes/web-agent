@@ -1,8 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import rehypeRaw from 'rehype-raw';
+import { MarkdownRenderer } from '@/components/ui/markdown-renderer';
 import {
   Send,
   Plus,
@@ -253,18 +251,14 @@ function MessageBubble({ message }) {
                 : 'bg-gray-50 border border-gray-200'
             }`}
           >
-            <div
+            <MarkdownRenderer 
               className={`prose prose-sm max-w-none break-words ${
                 isUser ? 'prose-invert' : ''
               }`}
+              size="default"
             >
-              <ReactMarkdown
-                remarkPlugins={[remarkGfm]}
-                rehypePlugins={[rehypeRaw]}
-              >
-                {message.content}
-              </ReactMarkdown>
-            </div>
+              {message.content}
+            </MarkdownRenderer>
 
             {/* Metrics for agent messages */}
             {!isUser && message.metrics && (
@@ -439,14 +433,12 @@ function ToolDetail({ tool }) {
                     Resultado:
                   </h6>
                   <div className="bg-white p-3 rounded-lg border overflow-x-auto custom-scrollbar">
-                    <div className="prose prose-sm max-w-none text-gray-600">
-                      <ReactMarkdown
-                        remarkPlugins={[remarkGfm]}
-                        rehypePlugins={[rehypeRaw]}
-                      >
-                        {tool.result}
-                      </ReactMarkdown>
-                    </div>
+                    <MarkdownRenderer 
+                      className="prose prose-sm max-w-none text-gray-600"
+                      size="small"
+                    >
+                      {tool.result}
+                    </MarkdownRenderer>
                   </div>
                 </div>
               )}

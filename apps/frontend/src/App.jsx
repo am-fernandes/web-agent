@@ -9,10 +9,13 @@ import {
   User,
   ChevronDown,
   ChevronRight,
+  Copy,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible';
+import { Toaster } from '@/components/ui/sonner';
+import { toast } from 'sonner';
 
 function App() {
   const [messages, setMessages] = useState([]);
@@ -213,6 +216,7 @@ function App() {
           </form>
         </div>
       </div>
+      <Toaster />
     </div>
   );
 }
@@ -276,6 +280,24 @@ function MessageBubble({ message }) {
                     Tempo: {message.metrics.time?.toFixed(1)}s
                   </span>
                 </div>
+              </div>
+            )}
+
+            {/* Copy Button for agent messages */}
+            {!isUser && (
+              <div className="mt-3 pt-3 border-t border-gray-200/50">
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(message.content);
+                    toast("Resposta copiada!", {
+                      description: "A resposta foi copiada para a área de transferência.",
+                    });
+                  }}
+                  className="flex items-center space-x-2 text-sm text-gray-600 hover:text-gray-900 transition-colors hover:bg-gray-50 px-2 py-1 rounded-lg"
+                >
+                  <Copy className="h-4 w-4" />
+                  <span>Copiar resposta</span>
+                </button>
               </div>
             )}
 

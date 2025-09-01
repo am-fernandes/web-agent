@@ -2,12 +2,15 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkBreaks from 'remark-breaks';
 import rehypeRaw from 'rehype-raw';
+import { useState } from 'react';
+import { Download } from 'lucide-react';
+import * as XLSX from 'xlsx';
 
-const MarkdownRenderer = ({ 
-  children, 
-  size = 'default', 
+const MarkdownRenderer = ({
+  children,
+  size = 'default',
   className = '',
-  ...props 
+  ...props
 }) => {
   // Component configurations based on size
   const sizeConfigs = {
@@ -24,7 +27,8 @@ const MarkdownRenderer = ({
       li: 'leading-relaxed',
       blockquote: 'border-l-4 border-gray-300 pl-4 italic my-4',
       codeInline: 'bg-gray-100 px-1 py-0.5 rounded text-sm font-mono',
-      codeBlock: 'block bg-gray-100 p-3 rounded font-mono text-sm overflow-x-auto',
+      codeBlock:
+        'block bg-gray-100 p-3 rounded font-mono text-sm overflow-x-auto',
       pre: 'bg-gray-100 p-3 rounded mb-3 overflow-x-auto',
       a: 'text-blue-600 hover:text-blue-800 underline',
       strong: 'font-semibold',
@@ -50,7 +54,8 @@ const MarkdownRenderer = ({
       li: 'leading-relaxed text-sm',
       blockquote: 'border-l-2 border-gray-300 pl-3 italic my-2 text-sm',
       codeInline: 'bg-gray-200 px-1 py-0.5 rounded text-xs font-mono',
-      codeBlock: 'block bg-gray-200 p-2 rounded font-mono text-xs overflow-x-auto',
+      codeBlock:
+        'block bg-gray-200 p-2 rounded font-mono text-xs overflow-x-auto',
       pre: 'bg-gray-200 p-2 rounded mb-2 overflow-x-auto text-xs',
       a: 'text-blue-600 hover:text-blue-800 underline text-sm',
       strong: 'font-semibold',
@@ -62,38 +67,92 @@ const MarkdownRenderer = ({
       tr: 'border-b border-gray-200',
       th: 'border border-gray-300 px-2 py-1 text-left font-semibold bg-gray-100 text-xs',
       td: 'border border-gray-300 px-2 py-1 text-xs',
-    }
+    },
   };
 
   const config = sizeConfigs[size] || sizeConfigs.default;
 
+  const downloadTableAsSpreadsheet = (tableElement) => {
+    const rows = [];
+    const tableRows = tableElement.querySelectorAll('tr');
+
+    tableRows.forEach((row) => {
+      const cells = [];
+      row.querySelectorAll('th, td').forEach((cell) => {
+        cells.push(cell.textContent.trim());
+      });
+      rows.push(cells);
+    });
+
+    // Create workbook and worksheet
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    XLSX.utils.book_append_sheet(wb, ws, 'Tabela');
+
+    // Generate filename with timestamp
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+    const filename = `tabela-${timestamp}.xlsx`;
+
+    // Download XLSX file
+    XLSX.writeFile(wb, filename);
+  };
+
+  const TableWithDownload = ({ node, ...props }) => {
+    const [tableRef, setTableRef] = useState(null);
+
+    return (
+      <div>
+        <table ref={setTableRef} className={config.table} {...props} />
+        {tableRef && (
+          <button
+            onClick={() => downloadTableAsSpreadsheet(tableRef)}
+            className="mb-2 px-3 py-1 text-xs text-gray-600 hover:text-gray-800 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded transition-colors cursor-pointer"
+          >
+            <Download className="inline-block w-3 h-3 mr-2" />
+            Baixar planilha
+          </button>
+        )}
+      </div>
+    );
+  };
+
   const components = {
-    h1: ({node, ...props}) => <h1 className={config.h1} {...props} />,
-    h2: ({node, ...props}) => <h2 className={config.h2} {...props} />,
-    h3: ({node, ...props}) => <h3 className={config.h3} {...props} />,
-    h4: ({node, ...props}) => <h4 className={config.h4} {...props} />,
-    h5: ({node, ...props}) => <h5 className={config.h5} {...props} />,
-    h6: ({node, ...props}) => <h6 className={config.h6} {...props} />,
-    p: ({node, ...props}) => <p className={config.p} {...props} />,
-    ul: ({node, ...props}) => <ul className={config.ul} {...props} />,
-    ol: ({node, ...props}) => <ol className={config.ol} {...props} />,
-    li: ({node, ...props}) => <li className={config.li} {...props} />,
-    blockquote: ({node, ...props}) => <blockquote className={config.blockquote} {...props} />,
-    code: ({node, inline, ...props}) => 
-      inline 
-        ? <code className={config.codeInline} {...props} />
-        : <code className={config.codeBlock} {...props} />,
-    pre: ({node, ...props}) => <pre className={config.pre} {...props} />,
-    a: ({node, ...props}) => <a className={config.a} {...props} />,
-    strong: ({node, ...props}) => <strong className={config.strong} {...props} />,
-    em: ({node, ...props}) => <em className={config.em} {...props} />,
-    hr: ({node, ...props}) => <hr className={config.hr} {...props} />,
-    table: ({node, ...props}) => <table className={config.table} {...props} />,
-    thead: ({node, ...props}) => <thead className={config.thead} {...props} />,
-    tbody: ({node, ...props}) => <tbody className={config.tbody} {...props} />,
-    tr: ({node, ...props}) => <tr className={config.tr} {...props} />,
-    th: ({node, ...props}) => <th className={config.th} {...props} />,
-    td: ({node, ...props}) => <td className={config.td} {...props} />,
+    h1: ({ node, ...props }) => <h1 className={config.h1} {...props} />,
+    h2: ({ node, ...props }) => <h2 className={config.h2} {...props} />,
+    h3: ({ node, ...props }) => <h3 className={config.h3} {...props} />,
+    h4: ({ node, ...props }) => <h4 className={config.h4} {...props} />,
+    h5: ({ node, ...props }) => <h5 className={config.h5} {...props} />,
+    h6: ({ node, ...props }) => <h6 className={config.h6} {...props} />,
+    p: ({ node, ...props }) => <p className={config.p} {...props} />,
+    ul: ({ node, ...props }) => <ul className={config.ul} {...props} />,
+    ol: ({ node, ...props }) => <ol className={config.ol} {...props} />,
+    li: ({ node, ...props }) => <li className={config.li} {...props} />,
+    blockquote: ({ node, ...props }) => (
+      <blockquote className={config.blockquote} {...props} />
+    ),
+    code: ({ node, inline, ...props }) =>
+      inline ? (
+        <code className={config.codeInline} {...props} />
+      ) : (
+        <code className={config.codeBlock} {...props} />
+      ),
+    pre: ({ node, ...props }) => <pre className={config.pre} {...props} />,
+    a: ({ node, ...props }) => <a className={config.a} {...props} />,
+    strong: ({ node, ...props }) => (
+      <strong className={config.strong} {...props} />
+    ),
+    em: ({ node, ...props }) => <em className={config.em} {...props} />,
+    hr: ({ node, ...props }) => <hr className={config.hr} {...props} />,
+    table: TableWithDownload,
+    thead: ({ node, ...props }) => (
+      <thead className={config.thead} {...props} />
+    ),
+    tbody: ({ node, ...props }) => (
+      <tbody className={config.tbody} {...props} />
+    ),
+    tr: ({ node, ...props }) => <tr className={config.tr} {...props} />,
+    th: ({ node, ...props }) => <th className={config.th} {...props} />,
+    td: ({ node, ...props }) => <td className={config.td} {...props} />,
   };
 
   return (

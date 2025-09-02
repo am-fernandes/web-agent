@@ -58,6 +58,12 @@ function App() {
     scrollToBottom();
   }, [messages]);
 
+  useEffect(() => {
+    if (isRecording) {
+      setShowVideoPanel(true);
+    }
+  }, [isRecording]);
+
   const handleInputChange = (e) => {
     setInputValue(e.target.value);
     if (textareaRef.current) {

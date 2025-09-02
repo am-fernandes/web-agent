@@ -32,7 +32,7 @@ export function VideoPanel({
   const videoRef = useRef(null);
   const containerRef = useRef(null);
 
-  // Update video source when currentVideo changes
+  // Update video source when currentVideo changes and autoplay
   useEffect(() => {
     if (!currentVideo) {
       return;
@@ -44,6 +44,27 @@ export function VideoPanel({
         console.log('Loading completed video:', videoUrl);
         videoRef.current.src = videoUrl;
         videoRef.current.load();
+        
+        // Autoplay when video is loaded
+        const handleCanPlay = () => {
+          videoRef.current.play().then(() => {
+            setIsPlaying(true);
+            console.log('Video started playing automatically');
+          }).catch((error) => {
+            console.log('Autoplay prevented by browser:', error);
+            setIsPlaying(false);
+          });
+          videoRef.current.removeEventListener('canplay', handleCanPlay);
+        };
+        
+        videoRef.current.addEventListener('canplay', handleCanPlay);
+        
+        // Cleanup listener if component unmounts
+        return () => {
+          if (videoRef.current) {
+            videoRef.current.removeEventListener('canplay', handleCanPlay);
+          }
+        };
       }
     }
   }, [currentVideo, getVideoUrl]);

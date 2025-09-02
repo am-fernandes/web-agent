@@ -141,7 +141,7 @@ async def run_agent(session_id: str, agent_call: AgentRequest):
             timeout_seconds=120
         )
         browser_tool = MCPTools(
-            command=f"node /home/matheus/Projects/playwright-mcp/cli.js --no-sandbox --save-trace --save-video --output-video=videos/{session_id} --viewport-size=1920,1080 --output-dir=mcp_results --headless --isolated", 
+            command=f"node /home/matheus/Projects/playwright-mcp/cli.js --no-sandbox --save-trace --save-video --output-video=videos/{session_id} --viewport-size=1920,1080 --output-dir=mcp_results --headless --isolated --streaming ", 
             timeout_seconds=600
         )
 

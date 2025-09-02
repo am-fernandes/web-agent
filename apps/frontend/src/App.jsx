@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
+import { useParams, useNavigate } from 'react-router-dom';
 import { MarkdownRenderer } from '@/components/ui/markdown-renderer';
 import { VideoPanel } from '@/components/VideoPanel';
 import { useVideoPolling } from '@/hooks/useVideoPolling';
@@ -26,7 +27,8 @@ function App() {
   const [inputValue, setInputValue] = useState('');
   const [loading, setLoading] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
-  const [sessionId, setSessionId] = useState(() => uuidv4());
+  const { sessionId } = useParams();
+  const navigate = useNavigate();
   const [userId] = useState('user-' + Math.random().toString(36).substr(2, 9));
   const [showVideoPanel, setShowVideoPanel] = useState(false);
   const messagesEndRef = useRef(null);
@@ -74,9 +76,7 @@ function App() {
   };
 
   const handleNewChat = () => {
-    setMessages([]);
-    setSessionId(uuidv4());
-    setShowVideoPanel(false); // Close video panel on new chat
+    navigate('/chat');
   };
 
   const handleSubmit = async (e) => {

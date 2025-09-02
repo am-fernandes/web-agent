@@ -54,23 +54,26 @@ export function VideoPanel({
         console.log('Loading completed video:', videoUrl);
         videoRef.current.src = videoUrl;
         videoRef.current.load();
-        
+
         // Autoplay when video is loaded
         const handleCanPlay = () => {
           if (videoRef.current) {
-            videoRef.current.play().then(() => {
-              setIsPlaying(true);
-              console.log('Video started playing automatically');
-            }).catch((error) => {
-              console.log('Autoplay prevented by browser:', error);
-              setIsPlaying(false);
-            });
+            videoRef.current
+              .play()
+              .then(() => {
+                setIsPlaying(true);
+                console.log('Video started playing automatically');
+              })
+              .catch((error) => {
+                console.log('Autoplay prevented by browser:', error);
+                setIsPlaying(false);
+              });
           }
           videoRef.current?.removeEventListener('canplay', handleCanPlay);
         };
-        
+
         videoRef.current.addEventListener('canplay', handleCanPlay);
-        
+
         // Cleanup listener if component unmounts
         return () => {
           if (videoRef.current) {
@@ -120,7 +123,12 @@ export function VideoPanel({
   const handleTimeUpdate = () => {
     if (videoRef.current) {
       const time = videoRef.current.currentTime;
-      if (typeof time === 'number' && isFinite(time) && !isNaN(time) && time >= 0) {
+      if (
+        typeof time === 'number' &&
+        isFinite(time) &&
+        !isNaN(time) &&
+        time >= 0
+      ) {
         setCurrentTime(time);
       }
     }
@@ -129,7 +137,12 @@ export function VideoPanel({
   const handleLoadedMetadata = () => {
     if (videoRef.current) {
       const duration = videoRef.current.duration;
-      if (typeof duration === 'number' && isFinite(duration) && !isNaN(duration) && duration > 0) {
+      if (
+        typeof duration === 'number' &&
+        isFinite(duration) &&
+        !isNaN(duration) &&
+        duration > 0
+      ) {
         setDuration(duration);
         console.log('Video duration loaded:', duration);
       } else {
@@ -143,7 +156,7 @@ export function VideoPanel({
     if (!duration || !isFinite(duration) || isNaN(duration)) {
       return;
     }
-    
+
     const rect = e.currentTarget.getBoundingClientRect();
     const pos = (e.clientX - rect.left) / rect.width;
     const newTime = pos * duration;
@@ -165,18 +178,17 @@ export function VideoPanel({
   };
 
   const formatTime = (seconds) => {
-    if (typeof seconds !== 'number' || !isFinite(seconds) || isNaN(seconds) || seconds < 0) {
+    if (
+      typeof seconds !== 'number' ||
+      !isFinite(seconds) ||
+      isNaN(seconds) ||
+      seconds < 0
+    ) {
       return '0:00';
     }
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = Math.floor(seconds % 60);
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-  };
-
-  const getVideoDisplayName = (video) => {
-    if (!video) return 'Nenhum vídeo';
-    const date = new Date(video.created_time * 1000);
-    return `${date.toLocaleTimeString()} - ${video.filename}`;
   };
 
   return (
@@ -225,7 +237,7 @@ export function VideoPanel({
             <X className="h-4 w-4" />
           </Button>
         </div>
-        
+
         {/* Tabs */}
         {!isFullscreen && (
           <div className="flex border-t border-gray-200">
@@ -267,7 +279,7 @@ export function VideoPanel({
         {activeTab === 'stream' ? (
           /* Browser Stream */
           <div className="flex-1">
-            <BrowserStream 
+            <BrowserStream
               isRecording={isRecording}
               autoConnect={true}
               wsUrl="ws://localhost:8080"
@@ -323,10 +335,14 @@ export function VideoPanel({
                     >
                       <div
                         className="h-full bg-white rounded"
-                        style={{ 
-                          width: duration && isFinite(duration) && duration > 0 
-                            ? `${Math.min((currentTime / duration) * 100, 100)}%` 
-                            : '0%' 
+                        style={{
+                          width:
+                            duration && isFinite(duration) && duration > 0
+                              ? `${Math.min(
+                                  (currentTime / duration) * 100,
+                                  100
+                                )}%`
+                              : '0%',
                         }}
                       />
                     </div>
@@ -410,7 +426,8 @@ export function VideoPanel({
                   <div className="space-y-3">
                     {videos.map((video, index) => {
                       const date = new Date(video.created_time * 1000);
-                      const isSelected = currentVideo?.filename === video.filename;
+                      const isSelected =
+                        currentVideo?.filename === video.filename;
 
                       return (
                         <button

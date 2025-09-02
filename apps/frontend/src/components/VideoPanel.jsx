@@ -44,7 +44,7 @@ export function VideoPanel({
 
   // Update video source when currentVideo changes and autoplay
   useEffect(() => {
-    if (!currentVideo) {
+    if (!currentVideo || activeTab !== 'videos') {
       return;
     }
 
@@ -57,14 +57,16 @@ export function VideoPanel({
         
         // Autoplay when video is loaded
         const handleCanPlay = () => {
-          videoRef.current.play().then(() => {
-            setIsPlaying(true);
-            console.log('Video started playing automatically');
-          }).catch((error) => {
-            console.log('Autoplay prevented by browser:', error);
-            setIsPlaying(false);
-          });
-          videoRef.current.removeEventListener('canplay', handleCanPlay);
+          if (videoRef.current) {
+            videoRef.current.play().then(() => {
+              setIsPlaying(true);
+              console.log('Video started playing automatically');
+            }).catch((error) => {
+              console.log('Autoplay prevented by browser:', error);
+              setIsPlaying(false);
+            });
+          }
+          videoRef.current?.removeEventListener('canplay', handleCanPlay);
         };
         
         videoRef.current.addEventListener('canplay', handleCanPlay);
@@ -77,7 +79,16 @@ export function VideoPanel({
         };
       }
     }
-  }, [currentVideo, getVideoUrl]);
+  }, [currentVideo, getVideoUrl, activeTab]);
+
+  // Reset video state when switching to videos tab
+  useEffect(() => {
+    if (activeTab === 'videos' && currentVideo) {
+      // Reset states when switching back to videos tab
+      setCurrentTime(0);
+      setIsPlaying(false);
+    }
+  }, [activeTab, currentVideo]);
 
   const togglePlay = () => {
     if (videoRef.current) {
@@ -108,22 +119,36 @@ export function VideoPanel({
 
   const handleTimeUpdate = () => {
     if (videoRef.current) {
-      setCurrentTime(videoRef.current.currentTime);
+      const time = videoRef.current.currentTime;
+      if (typeof time === 'number' && isFinite(time) && !isNaN(time) && time >= 0) {
+        setCurrentTime(time);
+      }
     }
   };
 
   const handleLoadedMetadata = () => {
     if (videoRef.current) {
-      setDuration(videoRef.current.duration);
+      const duration = videoRef.current.duration;
+      if (typeof duration === 'number' && isFinite(duration) && !isNaN(duration) && duration > 0) {
+        setDuration(duration);
+        console.log('Video duration loaded:', duration);
+      } else {
+        console.log('Invalid duration:', duration);
+        setDuration(0);
+      }
     }
   };
 
   const handleSeek = (e) => {
+    if (!duration || !isFinite(duration) || isNaN(duration)) {
+      return;
+    }
+    
     const rect = e.currentTarget.getBoundingClientRect();
     const pos = (e.clientX - rect.left) / rect.width;
     const newTime = pos * duration;
 
-    if (videoRef.current) {
+    if (videoRef.current && isFinite(newTime) && !isNaN(newTime)) {
       videoRef.current.currentTime = newTime;
       setCurrentTime(newTime);
     }
@@ -140,6 +165,9 @@ export function VideoPanel({
   };
 
   const formatTime = (seconds) => {
+    if (typeof seconds !== 'number' || !isFinite(seconds) || isNaN(seconds) || seconds < 0) {
+      return '0:00';
+    }
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = Math.floor(seconds % 60);
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
@@ -263,14 +291,23 @@ export function VideoPanel({
                 <>
                   <video
                     ref={videoRef}
+                    key={`${currentVideo.filename}-${activeTab}`} // Force re-render when switching tabs
                     className={`w-full h-full object-contain ${
                       isFullscreen ? 'max-h-screen' : ''
                     }`}
                     onTimeUpdate={handleTimeUpdate}
                     onLoadedMetadata={handleLoadedMetadata}
+                    onLoadedData={handleLoadedMetadata} // Try to get duration when data loads
+                    onCanPlay={handleLoadedMetadata} // Also try when video can play
+                    onDurationChange={handleLoadedMetadata} // And when duration changes
                     onPlay={() => setIsPlaying(true)}
                     onPause={() => setIsPlaying(false)}
+                    onError={(e) => {
+                      console.error('Video error:', e);
+                      setIsPlaying(false);
+                    }}
                     controls={false}
+                    preload="auto"
                   />
 
                   {/* Video Controls */}
@@ -286,7 +323,11 @@ export function VideoPanel({
                     >
                       <div
                         className="h-full bg-white rounded"
-                        style={{ width: `${(currentTime / duration) * 100}%` }}
+                        style={{ 
+                          width: duration && isFinite(duration) && duration > 0 
+                            ? `${Math.min((currentTime / duration) * 100, 100)}%` 
+                            : '0%' 
+                        }}
                       />
                     </div>
 

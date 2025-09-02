@@ -1,6 +1,8 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { MarkdownRenderer } from '@/components/ui/markdown-renderer';
+import { VideoPanel } from '@/components/VideoPanel';
+import { useVideoPolling } from '@/hooks/useVideoPolling';
 import {
   Send,
   Plus,
@@ -10,6 +12,8 @@ import {
   ChevronDown,
   ChevronRight,
   Copy,
+  Video,
+  VideoOff,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -24,8 +28,27 @@ function App() {
   const [isTyping, setIsTyping] = useState(false);
   const [sessionId, setSessionId] = useState(() => uuidv4());
   const [userId] = useState('user-' + Math.random().toString(36).substr(2, 9));
+  const [showVideoPanel, setShowVideoPanel] = useState(false);
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
+
+  // Callback for when new video is detected
+  const handleNewVideoDetected = useCallback((newVideo) => {
+    console.log('New video detected, opening panel:', newVideo);
+    if (!showVideoPanel) {
+      setShowVideoPanel(true);
+    }
+  }, [showVideoPanel]);
+
+  // Video polling hook
+  const {
+    videos,
+    currentVideo,
+    setCurrentVideo,
+    isRecording,
+    getVideoUrl,
+    fetchVideos
+  } = useVideoPolling(sessionId, handleNewVideoDetected);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -47,6 +70,7 @@ function App() {
   const handleNewChat = () => {
     setMessages([]);
     setSessionId(uuidv4());
+    setShowVideoPanel(false); // Close video panel on new chat
   };
 
   const handleSubmit = async (e) => {
@@ -119,22 +143,56 @@ function App() {
             </div>
             <h1 className="text-lg font-medium text-gray-900">Web Agent</h1>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleNewChat}
-            className="border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Novo Chat
-          </Button>
+          
+          <div className="flex items-center space-x-2">
+            {/* Video Panel Toggle */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowVideoPanel(!showVideoPanel)}
+              className={`border-gray-300 hover:bg-gray-50 relative ${
+                showVideoPanel 
+                  ? 'bg-gray-900 text-white hover:bg-gray-800' 
+                  : 'text-gray-700 hover:text-gray-900'
+              }`}
+            >
+              {showVideoPanel ? (
+                <VideoOff className="h-4 w-4 mr-2" />
+              ) : (
+                <Video className="h-4 w-4 mr-2" />
+              )}
+              Vídeo
+              
+              {/* Recording indicator */}
+              {isRecording && (
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse" />
+              )}
+              
+              {/* Connection status */}
+              {videos.length > 0 && !isRecording && (
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full" />
+              )}
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleNewChat}
+              className="border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Novo Chat
+            </Button>
+          </div>
         </div>
       </header>
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         <div className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 space-y-4">
+          <div className={`max-w-4xl mx-auto px-4 sm:px-6 py-4 space-y-4 transition-all duration-300 ${
+            showVideoPanel ? 'mr-96' : ''
+          }`}>
             {/* Empty state message */}
             {messages.length === 0 && (
               <div className="flex justify-center items-center h-full min-h-[50vh]">
@@ -167,7 +225,9 @@ function App() {
 
         {/* Input Form */}
         <div className="border-t border-gray-200 bg-white px-4 sm:px-6 py-4">
-          <form onSubmit={handleSubmit} className="max-w-4xl mx-auto">
+          <form onSubmit={handleSubmit} className={`max-w-4xl mx-auto transition-all duration-300 ${
+            showVideoPanel ? 'mr-96' : ''
+          }`}>
             <div className="relative flex items-end space-x-3">
               <div className="flex-1 relative">
                 <Textarea
@@ -216,6 +276,21 @@ function App() {
           </form>
         </div>
       </div>
+
+      {/* Video Panel */}
+      {showVideoPanel && (
+        <VideoPanel
+          videos={videos}
+          currentVideo={currentVideo}
+          setCurrentVideo={setCurrentVideo}
+          getVideoUrl={getVideoUrl}
+          isRecording={isRecording}
+          isConnected={videos.length > 0}
+          sessionId={sessionId}
+          onClose={() => setShowVideoPanel(false)}
+        />
+      )}
+
       <Toaster />
     </div>
   );

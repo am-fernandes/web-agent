@@ -199,6 +199,8 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
+videos/
+
 # Streamlit
 .streamlit/secrets.toml
 

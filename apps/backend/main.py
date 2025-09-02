@@ -6,12 +6,28 @@ from textwrap import dedent
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
+from contextlib import asynccontextmanager
 from pydantic import BaseModel
 import json
+import os
+from typing import Dict, List
+import time
 
 load_dotenv()
-app = FastAPI()
+
+# Initialize videos directory
+videos_dir = "videos"
+os.makedirs(videos_dir, exist_ok=True)
+
+# Simple lifespan (no complex setup needed)
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    print("Server starting...")
+    yield
+    print("Server shutting down...")
+
+app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -23,10 +39,95 @@ app.add_middleware(
 
 storage = SqliteStorage(table_name="agent_sessions", db_file="tmp/data.db")
 
+# Video monitoring helper
+class VideoMonitor:
+    
+    def get_session_videos(self, session_id: str) -> List[Dict]:
+        """Get all videos for a session"""
+        try:
+            videos_path = f"videos/{session_id}"
+            if not os.path.exists(videos_path):
+                return []
+            
+            video_files = []
+            for root, dirs, files in os.walk(videos_path):
+                for file in files:
+                    if file.endswith('.webm'):
+                        file_path = os.path.join(root, file)
+                        timestamp_dir = os.path.basename(root)
+                        video_files.append({
+                            "filename": file,
+                            "timestamp": timestamp_dir,
+                            "full_path": file_path,
+                            "created_time": os.path.getctime(file_path),
+                            "size": os.path.getsize(file_path)
+                        })
+            
+            # Sort by creation time (newest first)
+            video_files.sort(key=lambda x: x["created_time"], reverse=True)
+            return video_files
+        except Exception as e:
+            print(f"Error getting session videos: {e}")
+            return []
+    
+    def is_recording_session(self, session_id: str) -> bool:
+        """Simple check if any video in session is still being written"""
+        videos = self.get_session_videos(session_id)
+        
+        if not videos:
+            return False
+        
+        # Check if the newest video file was modified recently (last 10 seconds)
+        latest_video = videos[0]
+        try:
+            file_mod_time = os.path.getmtime(latest_video["full_path"])
+            time_since_modified = time.time() - file_mod_time
+            return time_since_modified < 10
+        except:
+            return False
+
+video_monitor = VideoMonitor()
+
 class AgentRequest(BaseModel):
     task: str
     user_id: str
 
+
+@app.get("/api/videos/{session_id}")
+async def list_videos(session_id: str):
+    """Get all videos for a session"""
+    try:
+        videos = video_monitor.get_session_videos(session_id)
+        is_recording = video_monitor.is_recording_session(session_id)
+        
+        return {
+            "videos": videos,
+            "is_recording": is_recording,
+            "total_count": len(videos)
+        }
+    except Exception as e:
+        return {"error": str(e), "videos": [], "is_recording": False, "total_count": 0}
+
+
+@app.get("/videos/{session_id}/{timestamp}/{filename}")
+async def serve_video(session_id: str, timestamp: str, filename: str):
+    """Serve completed video files as static files"""
+    try:
+        file_path = f"videos/{session_id}/{timestamp}/{filename}"
+        
+        if not os.path.exists(file_path):
+            return JSONResponse(content={"error": "Video not found"}, status_code=404)
+        
+        # Since we only serve completed videos now, always cache them
+        headers = {
+            'Cache-Control': 'public, max-age=3600',
+            'Content-Type': 'video/webm',
+        }
+        
+        return FileResponse(file_path, media_type='video/webm', headers=headers)
+                
+    except Exception as e:
+        return JSONResponse(content={"error": str(e)}, status_code=500)
 
 @app.post("/agent/{session_id}")
 async def run_agent(session_id: str, agent_call: AgentRequest):
@@ -40,7 +141,7 @@ async def run_agent(session_id: str, agent_call: AgentRequest):
             timeout_seconds=120
         )
         browser_tool = MCPTools(
-            command="node /home/matheus/Projects/playwright-mcp/cli.js --no-sandbox --save-trace --save-video --viewport-size=1920,1080 --output-dir=mcp_results --headless --isolated", 
+            command=f"node /home/matheus/Projects/playwright-mcp/cli.js --no-sandbox --save-trace --save-video --output-video=videos/{session_id} --viewport-size=1920,1080 --output-dir=mcp_results --headless --isolated", 
             timeout_seconds=600
         )
 
@@ -90,7 +191,6 @@ async def run_agent(session_id: str, agent_call: AgentRequest):
                     "run_id": agent_response.get("run_id", ""),
                     "formatted_tool_calls": agent_response.get("formatted_tool_calls", ""),
                     "tools": [tool.__dict__ for tool in agent_response.get("tools", [])]
-
                 }
             }, default=str, ensure_ascii=False)
 

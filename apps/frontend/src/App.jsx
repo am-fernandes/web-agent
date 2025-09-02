@@ -188,11 +188,10 @@ function App() {
       </header>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth">
-          <div className={`max-w-4xl mx-auto px-4 sm:px-6 py-4 space-y-4 transition-all duration-300 ${
-            showVideoPanel ? 'mr-96' : ''
-          }`}>
+      <div className="flex-1 flex overflow-hidden">
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <div className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth">
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 space-y-4">
             {/* Empty state message */}
             {messages.length === 0 && (
               <div className="flex justify-center items-center h-full min-h-[50vh]">
@@ -220,14 +219,12 @@ function App() {
             {isTyping && <TypingIndicator />}
 
             <div ref={messagesEndRef} />
+            </div>
           </div>
-        </div>
 
-        {/* Input Form */}
-        <div className="border-t border-gray-200 bg-white px-4 sm:px-6 py-4">
-          <form onSubmit={handleSubmit} className={`max-w-4xl mx-auto transition-all duration-300 ${
-            showVideoPanel ? 'mr-96' : ''
-          }`}>
+          {/* Input Form */}
+          <div className="border-t border-gray-200 bg-white px-4 sm:px-6 py-4">
+            <form onSubmit={handleSubmit} className="max-w-4xl mx-auto">
             <div className="relative flex items-end space-x-3">
               <div className="flex-1 relative">
                 <Textarea
@@ -274,22 +271,23 @@ function App() {
               </div>
             </div>
           </form>
+          </div>
         </div>
-      </div>
 
-      {/* Video Panel */}
-      {showVideoPanel && (
-        <VideoPanel
-          videos={videos}
-          currentVideo={currentVideo}
-          setCurrentVideo={setCurrentVideo}
-          getVideoUrl={getVideoUrl}
-          isRecording={isRecording}
-          isConnected={videos.length > 0}
-          sessionId={sessionId}
-          onClose={() => setShowVideoPanel(false)}
-        />
-      )}
+        {/* Video Panel */}
+        {showVideoPanel && (
+          <VideoPanel
+            videos={videos}
+            currentVideo={currentVideo}
+            setCurrentVideo={setCurrentVideo}
+            getVideoUrl={getVideoUrl}
+            isRecording={isRecording}
+            isConnected={videos.length > 0}
+            sessionId={sessionId}
+            onClose={() => setShowVideoPanel(false)}
+          />
+        )}
+      </div>
 
       <Toaster />
     </div>

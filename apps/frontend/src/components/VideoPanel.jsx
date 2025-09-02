@@ -123,8 +123,8 @@ export function VideoPanel({
   return (
     <div
       ref={containerRef}
-      className={`fixed right-0 bg-white border-l border-gray-200 shadow-lg transition-all duration-300 z-40 flex flex-col ${
-        isFullscreen ? 'inset-0 border-none' : 'top-16 bottom-0 w-[32rem]'
+      className={`bg-white border-l border-gray-200 shadow-lg transition-all duration-300 z-40 flex flex-col ${
+        isFullscreen ? 'fixed inset-0 border-none' : 'w-[32rem] h-full'
       }`}
     >
       {/* Header */}

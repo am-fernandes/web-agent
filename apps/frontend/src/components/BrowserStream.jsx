@@ -18,8 +18,6 @@ export function BrowserStream({
   const connectionStartTime = useRef(null);
   const fpsCounter = useRef([]);
   const reconnectTimeoutRef = useRef(null);
-  const heartbeatTimeoutRef = useRef(null);
-  const pingIntervalRef = useRef(null);
   const maxReconnectAttempts = 10;
   const baseReconnectDelay = 1000; // 1 second base delay
 
@@ -29,30 +27,6 @@ export function BrowserStream({
       clearTimeout(reconnectTimeoutRef.current);
       reconnectTimeoutRef.current = null;
     }
-    if (heartbeatTimeoutRef.current) {
-      clearTimeout(heartbeatTimeoutRef.current);
-      heartbeatTimeoutRef.current = null;
-    }
-    if (pingIntervalRef.current) {
-      clearInterval(pingIntervalRef.current);
-      pingIntervalRef.current = null;
-    }
-  }, []);
-
-  // Start heartbeat mechanism
-  const startHeartbeat = useCallback((websocket) => {
-    // Send ping every 30 seconds
-    pingIntervalRef.current = setInterval(() => {
-      if (websocket.readyState === WebSocket.OPEN) {
-        websocket.send(JSON.stringify({ type: 'ping' }));
-
-        // Set timeout for pong response
-        heartbeatTimeoutRef.current = setTimeout(() => {
-          console.log('WebSocket heartbeat timeout, closing connection');
-          websocket.close(1000, 'Heartbeat timeout');
-        }, 5000); // 5 second timeout for pong response
-      }
-    }, 30000);
   }, []);
 
   const connect = useCallback(() => {
@@ -74,26 +48,13 @@ export function BrowserStream({
     );
 
     const websocket = new WebSocket(wsUrl);
-    let connectionTimeout;
-
-    // Set connection timeout
-    connectionTimeout = setTimeout(() => {
-      if (websocket.readyState === WebSocket.CONNECTING) {
-        console.log('Connection timeout, closing WebSocket');
-        websocket.close(1000, 'Connection timeout');
-      }
-    }, 10000); // 10 second timeout
 
     websocket.onopen = () => {
       console.log('Browser stream WebSocket connected');
-      clearTimeout(connectionTimeout);
       setConnectionStatus('connected');
       setWs(websocket);
       connectionStartTime.current = Date.now();
       setReconnectAttempts(0);
-
-      // Start heartbeat
-      startHeartbeat(websocket);
     };
 
     websocket.onmessage = (event) => {
@@ -106,12 +67,6 @@ export function BrowserStream({
           setCurrentImage(
             `data:image/${data.format || 'png'};base64,${data.data}`
           );
-        } else if (data.type === 'pong') {
-          // Clear heartbeat timeout on pong response
-          if (heartbeatTimeoutRef.current) {
-            clearTimeout(heartbeatTimeoutRef.current);
-            heartbeatTimeoutRef.current = null;
-          }
         }
       } catch (error) {
         console.error('Error parsing browser stream message:', error);
@@ -120,8 +75,6 @@ export function BrowserStream({
 
     websocket.onerror = (error) => {
       console.error('Browser stream WebSocket error:', error);
-      clearTimeout(connectionTimeout);
-      setConnectionStatus('disconnected');
     };
 
     websocket.onclose = (event) => {
@@ -130,7 +83,6 @@ export function BrowserStream({
           event.reason || 'No reason provided'
         }`
       );
-      clearTimeout(connectionTimeout);
       clearTimers();
       setConnectionStatus('disconnected');
       setWs(null);
@@ -166,12 +118,12 @@ export function BrowserStream({
 
     setWs(websocket);
   }, [
+    ws,
     wsUrl,
     isRecording,
     autoConnect,
     reconnectAttempts,
     clearTimers,
-    startHeartbeat,
     baseReconnectDelay,
     maxReconnectAttempts,
   ]);
